@@ -9,6 +9,8 @@
 #include "rocksdb/db.h"
 #include "rocksdb/slice.h"
 #include "rocksdb/options.h"
+#include "rocksdb/convenience.h"
+#include "rocksdb/pfaof.h"
 
 using ROCKSDB_NAMESPACE::DB;
 using ROCKSDB_NAMESPACE::Options;
@@ -17,33 +19,60 @@ using ROCKSDB_NAMESPACE::ReadOptions;
 using ROCKSDB_NAMESPACE::Status;
 using ROCKSDB_NAMESPACE::WriteBatch;
 using ROCKSDB_NAMESPACE::WriteOptions;
+using ROCKSDB_NAMESPACE::Env;
+using ROCKSDB_NAMESPACE::ConfigOptions;
 
 #if defined(OS_WIN)
 std::string kDBPath = "C:\\Windows\\TEMP\\rocksdb_simple_example";
 #else
-std::string kDBPath = "/tmp/rocksdb_simple_example";
+std::string kDBPath = "/rocksdb_simple_example";
 #endif
+static std::shared_ptr<ROCKSDB_NAMESPACE::Env> env_guard;
+static ROCKSDB_NAMESPACE::Env* FLAGS_env = ROCKSDB_NAMESPACE::Env::Default();
 
 int main() {
   DB* db;
   Options options;
+  ConfigOptions config_options;
+  printf("Hello, I'm example\n");
+  auto fs = ROCKSDB_NAMESPACE::NewPfAofFileSystem();
+
+  Status s =
+      Env::CreateFromUri(config_options, "", "pfaof", &FLAGS_env, &env_guard);
+  if (!s.ok()) {
+    fprintf(stderr, "Failed creating env: %s\n", s.ToString().c_str());
+    exit(1);
+  }
+
+
   // Optimize RocksDB. This is the easiest way to get RocksDB to perform well
   options.IncreaseParallelism();
   options.OptimizeLevelStyleCompaction();
   // create the DB if it's not already present
   options.create_if_missing = true;
+  options.env = FLAGS_env;
+
 
   // open DB
-  Status s = DB::Open(options, kDBPath, &db);
-  assert(s.ok());
+  s = DB::Open(options, kDBPath, &db);
+  if(!s.ok()){
+    fprintf(stderr, "Failed call DB::Open, %s", s.ToString().c_str());
+    exit(s.code());
+  }
 
   // Put key-value
   s = db->Put(WriteOptions(), "key1", "value");
-  assert(s.ok());
+  if (!s.ok()) {
+    fprintf(stderr, "Failed call DB::Open, %s", s.ToString().c_str());
+    exit(s.code());
+  }
   std::string value;
   // get value
   s = db->Get(ReadOptions(), "key1", &value);
-  assert(s.ok());
+  if (!s.ok()) {
+    fprintf(stderr, "Failed call DB::Open, %s", s.ToString().c_str());
+    exit(s.code());
+  }
   assert(value == "value");
 
   // atomically apply a set of updates

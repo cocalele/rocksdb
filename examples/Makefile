@@ -16,10 +16,11 @@ CFLAGS += -Wstrict-prototypes
 
 .PHONY: clean librocksdb
 
+
 all: simple_example column_families_example compact_files_example c_simple_example optimistic_transaction_example transaction_example compaction_filter_example options_file_example
 
 simple_example: librocksdb simple_example.cc
-	$(CXX) $(CXXFLAGS) $@.cc -o$@ ../librocksdb.a -I../include -O2 -std=c++11 $(PLATFORM_LDFLAGS) $(PLATFORM_CXXFLAGS) $(EXEC_LDFLAGS)
+	$(CXX) $(CXXFLAGS) -I$(PF_INC)  $@.cc -o$@ ../librocksdb.a -I../include -O0 -g -std=c++11 $(PLATFORM_LDFLAGS) $(PLATFORM_CXXFLAGS) $(EXEC_LDFLAGS) -L$(PF_LIB) -L/root/v2/PureFlash/thirdParty/zookeeper/zookeeper-client/zookeeper-client-c  -ls5common -luring  -lrdmacm -libverbs -lpthread -luuid -lzookeeper -lcurl -lhashtable
 
 column_families_example: librocksdb column_families_example.cc
 	$(CXX) $(CXXFLAGS) $@.cc -o$@ ../librocksdb.a -I../include -O2 -std=c++11 $(PLATFORM_LDFLAGS) $(PLATFORM_CXXFLAGS) $(EXEC_LDFLAGS)
