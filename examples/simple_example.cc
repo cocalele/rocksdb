@@ -10,7 +10,10 @@
 #include "rocksdb/slice.h"
 #include "rocksdb/options.h"
 #include "rocksdb/convenience.h"
+#include <rocksdb/utilities/object_registry.h>
 #include "rocksdb/pfaof.h"
+
+using namespace ROCKSDB_NAMESPACE;
 
 using ROCKSDB_NAMESPACE::DB;
 using ROCKSDB_NAMESPACE::Options;
@@ -29,13 +32,14 @@ std::string kDBPath = "/rocksdb_simple_example";
 #endif
 static std::shared_ptr<ROCKSDB_NAMESPACE::Env> env_guard;
 static ROCKSDB_NAMESPACE::Env* FLAGS_env = ROCKSDB_NAMESPACE::Env::Default();
+void __PfAof_init();
 
 int main() {
   DB* db;
   Options options;
   ConfigOptions config_options;
   printf("Hello, I'm example\n");
-  auto fs = ROCKSDB_NAMESPACE::NewPfAofFileSystem();
+  __PfAof_init();
 
   Status s =
       Env::CreateFromUri(config_options, "", "pfaof", &FLAGS_env, &env_guard);
